@@ -1,0 +1,164 @@
+#http://nupic.docs.numenta.org/stable/quick-start/example-model-params.htmlを参照してください。
+#モデルの大まかなタイプを入力します。モデルの種類は下記を参考に
+#http://nupic.docs.numenta.org/1.0.0/api/opf/models.html#nupic.frameworks.opf.htm_prediction_model.HTMPredictionModel
+model: HTMPrediction
+
+#設定の形式をバージョン指定します
+version: 1
+
+#"aggregationInfo"セクションでは、集計するフィールドと集計方法を指定します。
+#
+#メソッド "mean"とフィールド "gym"を "first"メソッドで集計する方法の例
+#両方のフィールドは、それぞれの集計方法に従って、1時間15分の期間にわたって集計されます。
+#
+#   aggregationInfo:
+#     fields:
+#     - [consumption, sum]
+#     - [gym, first]
+#     minutes: 15
+#     hours: 1
+#
+# サポートされる集約メソッドの詳細については、nupic.data.aggregator(http://nupic.docs.numenta.org/1.0.3/api/data/index.html)を参照してください。
+
+aggregationInfo:
+  #"fields"は下記のようにペアのリストである必要があります。 各対は、フィールド名および集約関数（例えば、sum）である。
+  #この関数は、集計期間にわたってこの項目の複数の値を集計するために使用されます。
+  fields:
+  - [consumption, mean]
+  #時間単位がリストに無い場合、0がデフォルトの設定になります。
+  microseconds: 0
+  milliseconds: 0
+  minutes: 0
+  months: 0
+  seconds: 0
+  hours: 1
+  days: 0
+  weeks: 0
+  years: 0
+
+predictAheadTime: null
+
+#モデルのパラメータを設定する
+modelParams:
+
+  #このモデルが実行する推論のタイプ(詳しい説明はあまりありませんでした。)
+  #以下のモデルをサポートしています。 :
+  # - TemporalNextStep
+  # - TemporalClassification
+  # - NontemporalClassification
+  # - TemporalAnomaly
+  # - NontemporalAnomaly
+  # - TemporalMultiStep
+  # - NontemporalMultiStep
+  inferenceType: TemporalMultiStep
+
+  #センサー領域のパラメータ
+  sensorParams:
+    #センサー診断出力詳細制御:
+    # - verbosity == 0: 何もしない
+    # - verbosity in [1 .. 6]: レベルの冗長表示
+    verbosity: 0
+
+    #エンコーダーとそのパラメーターのリスト
+    encoders:
+      consumption:
+        fieldname: consumption
+        name: consumption
+        resolution: 0.88
+        seed: 1
+        type: RandomDistributedScalarEncoder
+      timestamp_timeOfDay:
+        fieldname: timestamp
+        name: timestamp_timeOfDay
+        timeOfDay: [21, 1]
+        type: DateEncoder
+      timestamp_weekend:
+        fieldname: timestamp
+        name: timestamp_weekend
+        type: DateEncoder
+        weekend: 21
+
+    #"sensorAutoReset" はRecordSensorから自動的に生成されたリセットの期間を指定します。
+    #
+    #None(null)の場合は、自動的に生成されたリセットを無効にします。 また、0に評価されるすべての値に対して無効にします。(普通はnullだと思います。)
+    #
+    #
+    #以下のようなパラメーターがあります:
+    #   sensorAutoReset:
+    #    days: <int>
+    #     hours: <int>
+    #     minutes: <int>
+    #     seconds: <int>
+    #     milliseconds: <int>
+    #     microseconds: <int>
+    #     weeks: <int>
+    #
+    #1.5日ごとの自動リセットの例
+    #   sensorAutoReset:
+    #     days: 1
+    #     hours: 12
+    #
+    sensorAutoReset: null
+
+
+  #Spatial Pooler（SP）領域が有効かどうか。
+  spEnable: true
+
+  #SP領域のパラメータを指定します。詳しくはnupic.algorithms.spatial_pooler.SpatialPoolerを参考にしてください。
+  #http://nupic.docs.numenta.org/1.0.3/api/algorithms/spatial-pooling.html
+  #OPFは1次元入力と空間プーリング構造を作成するだけなのでSP作成時には`columnCount` は
+  # `columnDimensions=(columnCount,)` and
+  # `inputDimensions=(inputWidth,)`.
+  #に変換されます。
+  spParams:
+    inputWidth: 946
+    columnCount: 2048
+    spVerbosity: 0
+    spatialImp: cpp
+    globalInhibition: 1
+    localAreaDensity: -1.0
+    numActiveColumnsPerInhArea: 40
+    seed: 1956
+    potentialPct: 0.85
+    synPermConnected: 0.1
+    synPermActiveInc: 0.04
+    synPermInactiveDec: 0.005
+    boostStrength: 3.0
+
+  #時間プーリングの有無
+  tmEnable: true
+
+  #TMのパラメータの指定。詳しくはnupic.algorithms.backtracking_tm.BacktrackingTM.を参考にしてください。
+  #http://nupic.docs.numenta.org/1.0.3/api/algorithms/sequence-memory.html
+  tmParams:
+    verbosity: 0
+    columnCount: 2048
+    cellsPerColumn: 32
+    inputWidth: 2048
+    seed: 1960
+    temporalImp: cpp
+    newSynapseCount: 20
+    initialPerm: 0.21
+    permanenceInc: 0.1
+    permanenceDec: 0.1
+    maxAge: 0
+    globalDecay: 0.0
+    maxSynapsesPerSegment: 32
+    maxSegmentsPerCell: 128
+    minThreshold: 12
+    activationThreshold: 16
+    outputType: normal
+    pamLength: 1
+
+  #分類器のパラメータ。詳しくはnupic.algorithms.sdr_classifier.SDRClassifierを参考にしてください。
+  #http://nupic.docs.numenta.org/1.0.3/quick-start/example-model-params.html
+  clParams:
+    verbosity: 0
+    regionName: SDRClassifierRegion
+    alpha: 0.1
+    steps: '1,5'
+    maxCategoryCount: 1000
+    implementation: cpp
+
+  #Trueの場合、ユーザーがSPメトリックを要求しない限り、SPネットワークを作成しないでください。
+  trainSPNetOnlyIfRequested: false
