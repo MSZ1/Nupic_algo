@@ -1,1 +1,1 @@
-# Nupic_algo
+# Nupic
